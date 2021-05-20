@@ -1,6 +1,6 @@
 # vpnmd
 
-A POSIX compliant daemon for [an alternative VPNManager Linux CLI client](https://github.com/anatolio-deb/vpnm).
+A POSIX compliant daemon for [an alternative VPN Manager Linux CLI client](https://github.com/anatolio-deb/vpnm).
 
 # Build
 
