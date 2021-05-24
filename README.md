@@ -13,7 +13,6 @@ pyinstaller -F -n vpnmd --hidden-import=libxtwrapper appd.py
 ## To-do
 
 - Automated testing
-- DNS forwarding
 
 # Tests
 
