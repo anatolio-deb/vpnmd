@@ -1,0 +1,11 @@
+[Unit]
+Description=VPN Manager daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Restart=on-failure
+ExecStart=/var/local/vpnmd
+
+[Install]
+WantedBy=multi-user.target
