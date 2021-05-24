@@ -9,6 +9,9 @@ Using [pyinstaller](https://www.pyinstaller.org/):
 ```
 pyinstaller -F -n vpnmd --hidden-import=libxtwrapper appd.py
 ```
+## Dependencies
+- iptables
+- iproute2
 
 ## To-do
 
