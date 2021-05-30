@@ -202,6 +202,9 @@ class Server(BaseServer):
             self.node_address = node_address
             self.original_gateway = original_gateway
 
+    def get_node_address(self):
+        return self.node_address
+
 
 if __name__ == "__main__":
     server = Server(("localhost", 4000))
