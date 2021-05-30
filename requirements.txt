@@ -1,3 +1,0 @@
-sockets-framework==0.2.8; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:f8a35f855e6d429fddf94c444b690520390743c3d9a017f165d7a408d10a9158 \
-    --hash=sha256:7162d3f186cfc2dd885a992fcf5e5bf3c5c67a84fbce9f9a79e5d8267fa42d90
