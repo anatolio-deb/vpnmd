@@ -1,3 +1,5 @@
+"""vpnmd is a helper daemon for vpnm that runs in the root
+and receives IPC requests to perform privileged actions"""
 from __future__ import annotations
 
 import subprocess
@@ -7,6 +9,14 @@ from sockets_framework.core import logging
 
 
 class Server(BaseServer):
+    """Runs in root, accepts requests from sockets_framework.core.Client (Session)
+    and runs network-related system calls.
+
+    Args:
+        BaseServer (multiprocessing.connection.Listener):
+        sockets_framework.core.BaseServer
+    """
+
     node_address: str = ""
     original_gateway: str = ""
     ifindex: int = 0
@@ -75,7 +85,7 @@ class Server(BaseServer):
     def delete_iface(self):
         try:
             proc = subprocess.run(
-                ["ip", "tuntap", "delete", "dev", f"tun{self.ifindex}", "mode", "tun"],
+                ["ip", "tuntap", "del", "dev", f"tun{self.ifindex}", "mode", "tun"],
                 check=True,
                 capture_output=True,
             )
