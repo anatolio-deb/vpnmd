@@ -18,6 +18,10 @@ And running the testing image with a root privileges:
 docker run --privileged vpnmd:testing
 ```
 
+## Known issues
+
+There's `ioctl(TUNSETIFF) device or resource busy` error while trying to call `ip tuntap del dev tunX mode tun` command inside a testing image, so this test case is skipped, as it passes while being tested on the host.
+
 # Build
 
 Using [pyinstaller](https://www.pyinstaller.org/):
@@ -25,7 +29,3 @@ Using [pyinstaller](https://www.pyinstaller.org/):
 ```
 pyinstaller -F -n vpnmd --hidden-import=libxtwrapper appd.py
 ```
-
-# Known issues
-
-There's `ioctl(TUNSETIFF) device or resource busy` error while trying to call `ip tuntap del dev tunX mode tun` command inside a testing image, so this test case is skipped, as it passes while being tested on the host.
