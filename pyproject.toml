@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "vpnmd"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Anatolio Nikiforidis <nikiforova693@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-sockets-framework = "^0.2.7"
+sockets-framework = "^0.2.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
