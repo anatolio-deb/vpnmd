@@ -1,5 +1,5 @@
 FROM python:3.9
-RUN apt update && apt install git iproute2 iptables wget unzip -y
+RUN apt update && apt install git iproute2 iptables wget unzip sudo -y
 RUN pip install --upgrade pip
 RUN pip install poetry pytest
 WORKDIR /code
