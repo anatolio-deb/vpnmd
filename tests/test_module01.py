@@ -4,7 +4,7 @@ import subprocess
 from multiprocessing import Process
 from unittest import TestCase
 
-from vpnmd.appd import Server
+from vpnmd.appd import Server, iptables_rule_exists
 
 
 class TestClass01(TestCase):
@@ -98,18 +98,12 @@ class TestClass01(TestCase):
     def test_case10(self):
         """Add iptables rule"""
         self.server.add_dns_rule(self.dns_port)
-        proc = subprocess.run(
-            ["iptables", "-t", "nat", "-L", "OUTPUT"], check=True, capture_output=True
-        )
-        self.assertIn(f"{self.dns_port}", proc.stdout.decode())
+        self.assertTrue(iptables_rule_exists(self.dns_port))
 
     def test_case11(self):
         """Delete iptables rule"""
         self.server.delete_dns_rule()
-        proc = subprocess.run(
-            ["iptables", "-t", "nat", "-L", "OUTPUT"], check=True, capture_output=True
-        )
-        self.assertNotIn(f"{self.dns_port}", proc.stdout.decode())
+        self.assertFalse(iptables_rule_exists(self.dns_port))
 
     # def test_case12(self):
     #     """Delete tun interface"""

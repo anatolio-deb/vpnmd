@@ -12,6 +12,6 @@ RUN rm -rf vpnm/__pycache__
 RUN rm -rf tests/__pycache__
 RUN poetry export -f requirements.txt --output requirements.txt
 RUN pip install -r requirements.txt
-RUN wget https://github.com/xjasonlyu/tun2socks/releases/download/v2.2.0/tun2socks-linux-amd64.zip
+RUN wget -q https://github.com/xjasonlyu/tun2socks/releases/download/v2.2.0/tun2socks-linux-amd64.zip
 RUN unzip -d /usr/local/bin tun2socks-linux-amd64
 CMD ["pytest", "-v"]
