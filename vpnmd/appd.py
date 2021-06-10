@@ -8,6 +8,37 @@ from sockets_framework import BaseServer
 from sockets_framework.core import logging
 
 
+def iptables_rule_exists(port):
+    try:
+        proc = subprocess.run(
+            [
+                "iptables",
+                "-t",
+                "nat",
+                "-C",
+                "OUTPUT",
+                "-p",
+                "udp",
+                "--dport",
+                "53",
+                "-j",
+                "REDIRECT",
+                "--to-ports",
+                port,
+            ],
+            check=True,
+            capture_output=True,
+        )
+    except subprocess.CalledProcessError as ex:
+        if ex.stderr:
+            logging.error(ex.stderr.decode().strip())
+        return False
+    else:
+        if proc.stdout:
+            logging.info(proc.stdout.decode().strip())
+        return True
+
+
 class Server(BaseServer):
     """Runs in root, accepts requests from sockets_framework.core.Client (Session)
     and runs network-related system calls.
@@ -51,33 +82,34 @@ class Server(BaseServer):
                 logging.info(proc.stdout.decode().strip())
 
     def add_dns_rule(self, port: str):
-        try:
-            proc = subprocess.run(
-                [
-                    "iptables",
-                    "-t",
-                    "nat",
-                    "-A",
-                    "OUTPUT",
-                    "-p",
-                    "udp",
-                    "--dport",
-                    "53",
-                    "-j",
-                    "REDIRECT",
-                    "--to-ports",
-                    port,
-                ],
-                check=True,
-                capture_output=True,
-            )
-        except subprocess.CalledProcessError as ex:
-            logging.error(ex.stderr.decode().strip())
-        else:
-            if proc.stdout:
-                logging.info(proc.stdout.decode().strip())
-        finally:
-            self.dns_port = port
+        if not iptables_rule_exists(port):
+            try:
+                proc = subprocess.run(
+                    [
+                        "iptables",
+                        "-t",
+                        "nat",
+                        "-A",
+                        "OUTPUT",
+                        "-p",
+                        "udp",
+                        "--dport",
+                        "53",
+                        "-j",
+                        "REDIRECT",
+                        "--to-ports",
+                        port,
+                    ],
+                    check=True,
+                    capture_output=True,
+                )
+            except subprocess.CalledProcessError as ex:
+                logging.error(ex.stderr.decode().strip())
+            else:
+                if proc.stdout:
+                    logging.info(proc.stdout.decode().strip())
+            finally:
+                self.dns_port = port
 
     def get_ifindex_and_ifaddr(self):
         return (self.ifindex, self.ifaddr)
