@@ -2,7 +2,7 @@
 
 A daemon for [vpnm](https://github.com/anatolio-deb/vpnm) designed to run as root and perform network-related system calls.
 
-**Note**: vpnmd relies on [sockets-framework](https://github.com/anatolio-deb/sockets-framework) — «*a simple framework that allows to create and use daemon programs that are controllable over sockets*».
+**Note**: vpnmd relies on [sockets-framework](https://github.com/anatolio-deb/sockets-framework) — «*a simple framework that simplifies programming and using daemon programs that are controllable over sockets*».
 
 # Building and installing from the source
 
