@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Restart=on-failure
-ExecStart=/var/local/bin/vpnmd
+ExecStart=/usr/local/bin/vpnmd
 
 [Install]
 WantedBy=multi-user.target
