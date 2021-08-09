@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/anatolio/.cache/pypoetry/virtualenvs/anyd-DwdtLYB4-py3.9",
+    "python.pythonPath": "/home/anatolio/.cache/pypoetry/virtualenvs/vpnmd-1otKGi3I-py3.9",
     "python.formatting.provider": "black",
     "python.testing.pytestEnabled": true,
     "python.testing.autoTestDiscoverOnSaveEnabled": true,

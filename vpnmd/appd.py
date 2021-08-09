@@ -2,9 +2,12 @@
 and receives IPC requests to perform privileged actions"""
 from __future__ import annotations
 
+import argparse
 import subprocess
 
 from anyd import Appd, logging
+
+from vpnmd import __version__
 
 address = ("localhost", 4000)
 appd = Appd(address)
@@ -256,4 +259,10 @@ def get_node_address():
 
 
 if __name__ == "__main__":
-    appd.start()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--version", action="store_true", default=False)
+    args = parser.parse_args()
+    if args.version:
+        print(f"vpnmd, v{__version__}")
+    else:
+        appd.start()
