@@ -8,8 +8,7 @@ on:
       - "main"
 
 jobs:
-  latest-release:
-    name: "os"
+  qa:
     runs-on: "ubuntu-18.04"
     steps:
       - uses: actions/checkout@v2
@@ -25,10 +24,14 @@ jobs:
           pip install -r requirements.txt
       - name: "linting"
         run: |
-          pylint --max-line-length=88 --disable=C0114,C0116 --notes= 
+          pylint --max-line-length=88 --disable=C0114,C0116 --notes= ./vpnmd
       - name: "testing"
         run: |
           pytest
+  build:
+    runs-on: "ubuntu-18.04"
+    needs: qa
+      steps:
       - name: "tagging"
         id: tag
         uses: dawidd6/action-get-tag@v1
