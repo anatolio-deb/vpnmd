@@ -1,0 +1,56 @@
+name: "CD"
+
+on:
+  push:
+    tags:
+      - "v*.*.*-*"
+    branch:
+      - "dev"
+
+jobs:
+  development-release:
+    name: "os"
+    runs-on: "ubuntu-18.04"
+    steps:
+      - uses: actions/checkout@v2
+      - name: "interpreter"
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: "requirements"
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install poetry
+          poetry export -f requirements.txt --output requirements.txt
+          pip install -r requirements.txt
+      - name: "linting"
+        run: |
+          pylint --max-line-length=88 --disable=C0114,C0116 --notes= 
+      - name: "testing"
+        run: |
+          pytest -v
+      - name: "tagging"
+        id: tag
+        uses: dawidd6/action-get-tag@v1
+      - name: "backingup"
+        id: backup
+        run: |
+          echo "::set-output name=version::$(cat ./vpnmd/__init__.py)"
+      - name: "hijacking"
+        run: echo $(echo __version__ = $(echo ${{steps.tag.outputs.tag}} | tr -d v)) > ./vpnmd/__init__.py
+      - name: "building"
+        run: |
+          pyinstaller -F -n vpnmd --hidden-import=libxtwrapper vpnmd/appd.py
+      - name: "restoring"
+        run: |
+          echo ${{steps.backingup.outputs.version}} > ./vpnmd/__init__.py
+      - uses: "marvinpinto/action-automatic-releases@latest"
+      - name: "building"
+        run: |
+          pyinstaller -F -n vpnmd --hidden-import=libxtwrapper vpnmd/appd.py
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: true
+          files: |
+            dist/vpnmd
