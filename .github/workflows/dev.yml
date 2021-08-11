@@ -33,7 +33,7 @@ jobs:
   build:
     runs-on: "ubuntu-18.04"
     needs: qa
-      steps:
+    steps:
       - name: "tagging"
         id: tag
         uses: dawidd6/action-get-tag@v1
