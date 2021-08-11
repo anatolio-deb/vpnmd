@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*-*"
-    branch:
+    branches:
       - "dev"
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
           pylint --max-line-length=88 --disable=C0114,C0116 --notes= 
       - name: "testing"
         run: |
-          pytest -v
+          pytest
       - name: "tagging"
         id: tag
         uses: dawidd6/action-get-tag@v1
