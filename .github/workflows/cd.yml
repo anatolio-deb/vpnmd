@@ -24,9 +24,11 @@ jobs:
           pip install -r requirements.txt
       - name: "linting"
         run: |
+          pip install pylint
           pylint --max-line-length=88 --disable=C0114,C0116 --notes= ./vpnmd
       - name: "testing"
         run: |
+          pip install pytest
           pytest
   build:
     runs-on: "ubuntu-18.04"
@@ -43,6 +45,7 @@ jobs:
         run: echo $(echo __version__ = $(echo ${{steps.tag.outputs.tag}} | tr -d v)) > ./vpnmd/__init__.py
       - name: "building"
         run: |
+          pip install pyinstaller
           pyinstaller -F -n vpnmd --hidden-import=libxtwrapper vpnmd/appd.py
       - name: "restoring"
         run: |

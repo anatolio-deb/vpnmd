@@ -51,10 +51,6 @@ jobs:
         run: |
           echo ${{steps.backingup.outputs.version}} > ./vpnmd/__init__.py
       - uses: "marvinpinto/action-automatic-releases@latest"
-      - name: "building"
-        run: |
-          pyinstaller -F -n vpnmd --hidden-import=libxtwrapper vpnmd/appd.py
-      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: true
