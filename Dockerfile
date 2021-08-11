@@ -1,5 +1,5 @@
 FROM python:3.9
-RUN apt update && apt install git iproute2 iptables wget unzip sudo -y
+RUN apt update && apt install git iproute2 iptables curl unzip sudo -y
 RUN pip install --upgrade pip
 RUN pip install poetry pytest
 WORKDIR /code
@@ -12,6 +12,6 @@ RUN rm -rf vpnm/__pycache__
 RUN rm -rf tests/__pycache__
 RUN poetry export -f requirements.txt --output requirements.txt
 RUN pip install -r requirements.txt
-RUN wget -q https://github.com/xjasonlyu/tun2socks/releases/download/v2.2.0/tun2socks-linux-amd64.zip
-RUN unzip -d /usr/local/bin tun2socks-linux-amd64
+RUN curl -L https://github.com/xjasonlyu/tun2socks/releases/latest/download/tun2socks-linux-amd64.zip --output tun2socks-linux-amd64.zip
+RUN sudo unzip -d /usr/local/bin tun2socks-linux-amd64.zip
 CMD ["pytest", "-v"]
