@@ -28,8 +28,8 @@ jobs:
           pylint --max-line-length=88 --disable=C0114,C0116 --notes= ./vpnmd
       - name: "testing"
         run: |
-          wget -q https://github.com/xjasonlyu/tun2socks/releases/download/latest/tun2socks-linux-amd64.zip
-          sudo unzip -d /usr/local/bin tun2socks-linux-amd64
+          curl -L https://github.com/xjasonlyu/tun2socks/releases/latest/download/tun2socks-linux-amd64.zip --output tun2socks-linux-amd64.zip
+          sudo unzip -d /usr/local/bin tun2socks-linux-amd64.zip
           pip install pytest
           pytest -v
   build:
