@@ -9,7 +9,7 @@ on:
 
 jobs:
   development-release:
-    name: "os"
+    name: "continious delivery"
     runs-on: "ubuntu-18.04"
     steps:
       - uses: actions/checkout@v2
@@ -25,9 +25,11 @@ jobs:
           pip install -r requirements.txt
       - name: "linting"
         run: |
+          pip install pylint
           pylint --max-line-length=88 --disable=C0114,C0116 --notes= 
       - name: "testing"
         run: |
+          pip install pytest
           pytest
       - name: "tagging"
         id: tag
