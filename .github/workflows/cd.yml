@@ -28,7 +28,7 @@ jobs:
       - name: "building"
         run: |
           pip install pyinstaller
-          run pyinstaller -F -n vpnmd --clean --hidden-import=libxtwrapper vpnmd/appd.py
+          pyinstaller -F -n vpnmd --clean --hidden-import=libxtwrapper vpnmd/appd.py
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
