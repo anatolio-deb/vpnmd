@@ -9,14 +9,13 @@ from anyd import Appd, logging
 
 from vpnmd import __version__
 
-address = ("localhost", 4000)
+address = ("localhost", 6554)
 appd = Appd(address)
-SESSION: dict = {}
 
 
-def iptables_rule_exists(port):
+def _iptables_rule_exists(port: str):
     try:
-        proc = subprocess.run(
+        subprocess.run(
             [
                 "iptables",
                 "-t",
@@ -33,27 +32,54 @@ def iptables_rule_exists(port):
                 port,
             ],
             check=True,
-            capture_output=True,
+            capture_output=False,
         )
-    except subprocess.CalledProcessError as ex:
-        if ex.stderr:
-            logging.error(ex.stderr.decode().strip())
+    except subprocess.CalledProcessError:
         return False
     else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
         return True
 
 
 @appd.api
-def delete_dns_rule():
-    try:
+def iptables_rule_exists(port: str) -> bool:
+    return _iptables_rule_exists(port)
+
+
+@appd.api
+def delete_dns_rule(port: str) -> subprocess.CompletedProcess:
+    proc = subprocess.run(
+        [
+            "iptables",
+            "-t",
+            "nat",
+            "-D",
+            "OUTPUT",
+            "-p",
+            "udp",
+            "--dport",
+            "53",
+            "-j",
+            "REDIRECT",
+            "--to-ports",
+            port,
+        ],
+        check=False,
+        capture_output=True,
+    )
+    return proc
+
+
+@appd.api
+def add_dns_rule(port: str) -> subprocess.CompletedProcess | None:
+    proc = None
+
+    if not _iptables_rule_exists(port):
         proc = subprocess.run(
             [
                 "iptables",
                 "-t",
                 "nat",
-                "-D",
+                "-A",
                 "OUTPUT",
                 "-p",
                 "udp",
@@ -62,72 +88,31 @@ def delete_dns_rule():
                 "-j",
                 "REDIRECT",
                 "--to-ports",
-                SESSION["dns_port"],
+                port,
             ],
-            check=True,
+            check=False,
             capture_output=True,
         )
-    except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
-    else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
+    return proc
+
+
+# @appd.api
+# def get_ifindex_and_ifaddr():
+#     return (SESSION.get("ifindex"), SESSION.get("ifaddr"))
 
 
 @appd.api
-def add_dns_rule(port: str):
-    if not iptables_rule_exists(port):
-        try:
-            proc = subprocess.run(
-                [
-                    "iptables",
-                    "-t",
-                    "nat",
-                    "-A",
-                    "OUTPUT",
-                    "-p",
-                    "udp",
-                    "--dport",
-                    "53",
-                    "-j",
-                    "REDIRECT",
-                    "--to-ports",
-                    port,
-                ],
-                check=True,
-                capture_output=True,
-            )
-        except subprocess.CalledProcessError as ex:
-            logging.error(ex.stderr.decode().strip())
-        else:
-            if proc.stdout:
-                logging.info(proc.stdout.decode().strip())
-        finally:
-            SESSION["dns_port"] = port
+def delete_iface(ifindex: int) -> subprocess.CompletedProcess:
+    proc = subprocess.run(
+        ["ip", "tuntap", "del", "dev", f"tun{ifindex}", "mode", "tun"],
+        check=False,
+        capture_output=True,
+    )
+    return proc
 
 
 @appd.api
-def get_ifindex_and_ifaddr():
-    return (SESSION.get("ifindex"), SESSION.get("ifaddr"))
-
-
-@appd.api
-def delete_iface():
-    try:
-        proc = subprocess.run(
-            ["ip", "tuntap", "del", "dev", f"tun{SESSION['ifindex']}", "mode", "tun"],
-            check=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
-    else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
-
-
-@appd.api
-def add_iface(ifindex: int, ifaddr: str):
+def add_iface(ifindex: int, ifaddr: str) -> subprocess.CompletedProcess:
     try:
         proc = subprocess.run(
             ["ip", "tuntap", "add", "dev", f"tun{ifindex}", "mode", "tun"],
@@ -135,91 +120,70 @@ def add_iface(ifindex: int, ifaddr: str):
             capture_output=True,
         )
     except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
+        logging.exception(ex)
     else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
-    try:
         proc = subprocess.run(
             ["ip", "address", "add", f"{ifaddr}", "dev", f"tun{ifindex}"],
-            check=True,
+            check=False,
             capture_output=True,
         )
-    except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
-    else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
-    finally:
-        SESSION["ifindex"] = ifindex
-        SESSION["ifaddr"] = ifaddr
+    return proc
 
 
 @appd.api
-def set_iface_up():
+def set_iface_up(ifindex: int) -> subprocess.CompletedProcess:
     """tun2socks must be running"""
-    try:
-        proc = subprocess.run(
-            ["ip", "link", "set", "dev", f"tun{SESSION['ifindex']}", "up"],
-            check=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
-    else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
+    proc = subprocess.run(
+        ["ip", "link", "set", "dev", f"tun{ifindex}", "up"],
+        check=False,
+        capture_output=True,
+    )
+    return proc
 
 
 @appd.api
-def add_default_route(metric: int):
+def add_default_route(metric: int, ifindex: int) -> subprocess.CompletedProcess:
     """Device must be UP"""
-    try:
-        proc = subprocess.run(
-            [
-                "ip",
-                "route",
-                "add",
-                "default",
-                "dev",
-                f"tun{SESSION['ifindex']}",
-                "metric",
-                f"{metric}",
-            ],
-            check=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
-    else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
+    proc = subprocess.run(
+        [
+            "ip",
+            "route",
+            "add",
+            "default",
+            "dev",
+            f"tun{ifindex}",
+            "metric",
+            f"{metric}",
+        ],
+        check=False,
+        capture_output=True,
+    )
+    return proc
 
 
 @appd.api
-def delete_node_route():
-    try:
-        proc = subprocess.run(
-            [
-                "ip",
-                "route",
-                "delete",
-                f"{SESSION['node_address']}",
-                "via",
-                f"{SESSION['original_gateway']}",
-            ],
-            check=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
-    else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
+def delete_node_route(
+    node_address: str, original_gateway: str
+) -> subprocess.CompletedProcess:
+    proc = subprocess.run(
+        [
+            "ip",
+            "route",
+            "delete",
+            f"{node_address}",
+            "via",
+            f"{original_gateway}",
+        ],
+        check=False,
+        capture_output=True,
+    )
+    return proc
 
 
 @appd.api
-def add_node_route(node_address: str, original_gateway: str, metric: int):
+def add_node_route(
+    node_address: str, original_gateway: str, metric: int
+) -> subprocess.CompletedProcess:
     """Add the route for the v2ray node through the original gateway
 
     Args:
@@ -228,34 +192,26 @@ def add_node_route(node_address: str, original_gateway: str, metric: int):
         metric (int): The route metric should be lower than the one \
             of the original default route
     """
-    try:
-        proc = subprocess.run(
-            [
-                "ip",
-                "route",
-                "add",
-                f"{node_address}",
-                "via",
-                f"{original_gateway}",
-                "metric",
-                f"{metric}",
-            ],
-            check=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as ex:
-        logging.error(ex.stderr.decode().strip())
-    else:
-        if proc.stdout:
-            logging.info(proc.stdout.decode().strip())
-    finally:
-        SESSION["node_address"] = node_address
-        SESSION["original_gateway"] = original_gateway
+    proc = subprocess.run(
+        [
+            "ip",
+            "route",
+            "add",
+            f"{node_address}",
+            "via",
+            f"{original_gateway}",
+            "metric",
+            f"{metric}",
+        ],
+        check=False,
+        capture_output=True,
+    )
+    return proc
 
 
-@appd.api
-def get_node_address():
-    return SESSION.get("node_address")
+# @appd.api
+# def get_node_address():
+#     return SESSION.get("node_address")
 
 
 if __name__ == "__main__":

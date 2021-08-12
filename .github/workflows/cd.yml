@@ -1,14 +1,15 @@
-name: "CD"
+name: "tagged-release"
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*"
     branches:
       - "main"
 
 jobs:
-  qa:
+  tagged-release:
+    name: "Tagged Release"
     runs-on: "ubuntu-18.04"
     steps:
       - uses: actions/checkout@v2
@@ -26,33 +27,34 @@ jobs:
         run: |
           pip install pylint
           pylint --max-line-length=88 --disable=C0114,C0116 --notes= ./vpnmd
-      - name: "testing"
-        run: |
-          pip install pytest
-          pytest
-  build:
-    runs-on: "ubuntu-18.04"
-    needs: qa
-    steps:
-      - name: "tagging"
-        id: tag
-        uses: dawidd6/action-get-tag@v1
-      - name: "backingup"
-        id: backup
-        run: |
-          echo "::set-output name=version::$(cat ./vpnmd/__init__.py)"
-      - name: "hijacking"
-        run: echo $(echo __version__ = $(echo ${{steps.tag.outputs.tag}} | tr -d v)) > ./vpnmd/__init__.py
-      - name: "building"
-        run: |
-          pip install pyinstaller
-          pyinstaller -F -n vpnmd --hidden-import=libxtwrapper vpnmd/appd.py
-      - name: "restoring"
-        run: |
-          echo ${{steps.backingup.outputs.version}} > ./vpnmd/__init__.py
+      # - name: "testing"
+        # run: |
+        #   pip install pytest
+        #   pytest
+  # build:
+  #   runs-on: "ubuntu-18.04"
+  #   needs: qa
+  #   steps:
+  #     - name: "tagging"
+  #       id: tag
+  #       uses: dawidd6/action-get-tag@v1
+  #     - name: "backingup"
+  #       id: backup
+  #       run: |
+  #         echo "::set-output name=version::$(cat ./vpnmd/__init__.py)"
+  #     - name: "hijacking"
+  #       run: echo $(echo __version__ = $(echo ${{steps.tag.outputs.tag}} | tr -d v)) > ./vpnmd/__init__.py
+  #     - name: "building"
+  #       run: |
+  #         pip install pyinstaller
+  #         pyinstaller -F -n vpnmd --hidden-import=libxtwrapper vpnmd/appd.py
+  #     - name: "restoring"
+  #       run: |
+  #         echo ${{steps.backingup.outputs.version}} > ./vpnmd/__init__.py
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
             dist/vpnmd
+            
