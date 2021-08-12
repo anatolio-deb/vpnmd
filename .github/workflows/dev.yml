@@ -9,9 +9,6 @@ jobs:
   pre-release:
     name: "Pre Release"
     runs-on: "ubuntu-18.04"
-
-    steps:
-    runs-on: "ubuntu-18.04"
     steps:
       - uses: actions/checkout@v2
       - name: "interpreter"
